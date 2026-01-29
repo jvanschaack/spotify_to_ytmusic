@@ -1,6 +1,6 @@
-import ytmusicapi
-
 import os
+
+import ytmusicapi
 
 
 def setup_ytmusic_with_raw_headers(
@@ -29,14 +29,18 @@ def setup_ytmusic_with_raw_headers(
         filepath=credentials_file, headers_raw=headers_raw
     )
     print(f"Configuration headers saved to {credentials_file}")
+    print(
+        "SECURITY NOTE: 'raw_headers.txt' may contain sensitive cookies. "
+        "Delete it after setup and avoid committing it to source control."
+    )
     return config_headers
 
 
 if __name__ == "__main__":
     try:
         # Specify file paths
-        raw_headers_file = "raw_headers.txt"
-        credentials_file = "oauth.json"
+        raw_headers_file = os.getenv("S2YT_RAW_HEADERS_PATH", "raw_headers.txt")
+        credentials_file = os.getenv("S2YT_OAUTH_PATH", "oauth.json")
 
         # Set up YTMusic with raw headers
         print(f"Setting up YTMusic using headers from {raw_headers_file}...")

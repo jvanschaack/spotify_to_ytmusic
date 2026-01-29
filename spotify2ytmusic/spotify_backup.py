@@ -24,8 +24,10 @@ class SpotifyAPI:
     def __init__(self, auth):
         self._auth = auth
 
-    def get(self, url, params={}, tries=3):
+    def get(self, url, params=None, tries=3):
         """Fetch a resource from Spotify API."""
+        if params is None:
+            params = {}
         url = self._construct_url(url, params)
         for _ in range(tries):
             try:
@@ -36,8 +38,10 @@ class SpotifyAPI:
                 time.sleep(2)
         sys.exit("Failed to fetch data from Spotify API after retries.")
 
-    def list(self, url, params={}):
+    def list(self, url, params=None):
         """Fetch paginated resources and return as a combined list."""
+        if params is None:
+            params = {}
         response = self.get(url, params)
         items = response["items"]
 
@@ -165,7 +169,11 @@ def write_to_file(file, format, playlists, liked_albums):
     print(f"Writing to {file}...")
     with open(file, "w", encoding="utf-8") as f:
         if format == "json":
-            json.dump({"playlists": playlists, "albums": liked_albums}, f)
+            json.dump(
+                {"playlists": playlists, "albums": liked_albums},
+                f,
+                ensure_ascii=False,
+            )
         else:
             for playlist in playlists:
                 f.write(playlist["name"] + "\r\n")

@@ -13,19 +13,26 @@ from dataclasses import dataclass, field
 
 
 SongInfo = namedtuple("SongInfo", ["title", "artist", "album"])
+OAUTH_PATH_ENV = "S2YT_OAUTH_PATH"
 
 
 def get_ytmusic() -> YTMusic:
     """
     @@@
     """
-    if not os.path.exists("oauth.json"):
-        print("ERROR: No file 'oauth.json' exists in the current directory.")
-        print("       Have you logged in to YTMusic?  Run 'ytmusicapi oauth' to login")
+    oauth_path = os.getenv(OAUTH_PATH_ENV, "oauth.json")
+    if not os.path.exists(oauth_path):
+        print(f"ERROR: No file '{oauth_path}' exists.")
+        print(
+            "       Have you logged in to YTMusic?  Run 'ytmusicapi oauth' to login"
+        )
+        print(
+            f"       You can override the path with the {OAUTH_PATH_ENV} environment variable."
+        )
         sys.exit(1)
 
     try:
-        return YTMusic("oauth.json")
+        return YTMusic(oauth_path)
     except json.decoder.JSONDecodeError as e:
         print(f"ERROR: JSON Decode error while trying start YTMusic: {e}")
         print("       This typically means a problem with a 'oauth.json' file.")
@@ -79,7 +86,8 @@ def _ytmusic_create_playlist(
 
 def load_playlists_json(filename: str = "playlists.json", encoding: str = "utf-8"):
     """Load the `playlists.json` Spotify playlist file"""
-    return json.load(open(filename, "r", encoding=encoding))
+    with open(filename, "r", encoding=encoding) as file:
+        return json.load(file)
 
 
 def create_playlist(pl_name: str, privacy_status: str = "PRIVATE") -> None:
@@ -107,7 +115,7 @@ def iter_spotify_liked_albums(
     spotify_pls = load_playlists_json(spotify_playlist_file, spotify_encoding)
 
     if "albums" not in spotify_pls:
-        return None
+        return
 
     for album in [x["album"] for x in spotify_pls["albums"]]:
         for track in album["tracks"]["items"]:
@@ -271,6 +279,8 @@ def lookup_song(
         details.query = query
         details.suggestions = yt.get_search_suggestions(query=query)
     songs = yt.search(query=query, filter="songs")
+    if not songs:
+        raise ValueError(f"Did not find any results for {track_name} by {artist_name}")
 
     match yt_search_algo:
         case 0:
@@ -376,7 +386,9 @@ def copier(
     duplicate_count = 0
     error_count = 0
 
+    total_count = 0
     for src_track in src_tracks:
+        total_count += 1
         print(f"Spotify:   {src_track.title} - {src_track.artist} - {src_track.album}")
 
         try:
@@ -427,6 +439,12 @@ def copier(
     print(
         f"Added {len(tracks_added_set)} tracks, encountered {duplicate_count} duplicates, {error_count} errors"
     )
+    return {
+        "total_tracks": total_count,
+        "unique_tracks_added": len(tracks_added_set),
+        "duplicate_tracks": duplicate_count,
+        "errors": error_count,
+    }
 
 
 def copy_playlist(
