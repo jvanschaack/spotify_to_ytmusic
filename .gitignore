@@ -174,3 +174,7 @@ cython_debug/
 oauth.json
 raw_headers.txt
 playlists.json
+# Web app
+webapp/.next/
+webapp/node_modules/
+webapp/.turbo/
