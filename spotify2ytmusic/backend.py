@@ -13,19 +13,26 @@ from dataclasses import dataclass, field
 
 
 SongInfo = namedtuple("SongInfo", ["title", "artist", "album"])
+OAUTH_PATH_ENV = "S2YT_OAUTH_PATH"
 
 
 def get_ytmusic() -> YTMusic:
     """
     @@@
     """
-    if not os.path.exists("oauth.json"):
-        print("ERROR: No file 'oauth.json' exists in the current directory.")
-        print("       Have you logged in to YTMusic?  Run 'ytmusicapi oauth' to login")
+    oauth_path = os.getenv(OAUTH_PATH_ENV, "oauth.json")
+    if not os.path.exists(oauth_path):
+        print(f"ERROR: No file '{oauth_path}' exists.")
+        print(
+            "       Have you logged in to YTMusic?  Run 'ytmusicapi oauth' to login"
+        )
+        print(
+            f"       You can override the path with the {OAUTH_PATH_ENV} environment variable."
+        )
         sys.exit(1)
 
     try:
-        return YTMusic("oauth.json")
+        return YTMusic(oauth_path)
     except json.decoder.JSONDecodeError as e:
         print(f"ERROR: JSON Decode error while trying start YTMusic: {e}")
         print("       This typically means a problem with a 'oauth.json' file.")
