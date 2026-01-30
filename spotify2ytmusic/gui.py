@@ -296,7 +296,8 @@ class Window:
         """
 
         def run_in_thread():
-            if os.path.exists("oauth.json"):
+            oauth_path = os.getenv(backend.OAUTH_PATH_ENV, "oauth.json")
+            if os.path.exists(oauth_path):
                 print("File detected, auto login")
             elif auto:
                 print("No file detected. Manual login required")
@@ -319,14 +320,23 @@ class Window:
                     process.communicate()
                 else:  # For Unix and Linux
                     try:
-                        subprocess.call(
-                            "python3 -m ytmusicapi oauth",
-                            shell=True,
+                        subprocess.run(
+                            ["python3", "-m", "ytmusicapi", "oauth"],
+                            check=False,
                             stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
                         )
                     except Exception as e:
                         print(f"An error occurred: {e}")
 
+            if os.path.exists(oauth_path):
+                print(
+                    f"NOTE: Using credentials at '{oauth_path}'. Keep this file private."
+                )
+                if oauth_path == "oauth.json":
+                    print(
+                        "      Consider moving it outside the repo or setting S2YT_OAUTH_PATH."
+                    )
 
             self.tabControl.select(self.tab2)
             print()

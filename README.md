@@ -305,3 +305,40 @@ spotify-backup.py licensed under MIT License.
 See <https://github.com/caseychu/spotify-backup> for more information.
 
 [//]: # " vim: set tw=90 ts=4 sw=4 ai: "
+
+---
+
+## Web App (Vercel + SPA)
+
+This repository now includes a `webapp/` directory that contains a Next.js SPA
+for orchestrating the migration flow. The web UI is designed to run on Vercel
+and call a separate Python API for the actual Spotify/YT Music operations.
+
+### Why a separate backend?
+
+Vercel serverless functions do not run Python out of the box, so the existing
+Python logic in `spotify2ytmusic/` should be hosted separately (e.g., Fly.io,
+Render, Railway, or a self-hosted VM). The webapp can then call that API to
+kick off backups and migrations.
+
+### Running the webapp locally
+
+```bash
+cd webapp
+npm install
+npm run dev
+```
+
+### Environment variables
+
+Set a backend URL in your deployment environment and use it in your API calls:
+
+```
+S2YT_BACKEND_URL=https://your-python-api.example.com
+```
+
+### Suggested deployment
+
+- **Frontend**: Deploy `webapp/` to Vercel.
+- **Backend**: Deploy the Python API separately (FastAPI/Flask wrapper around
+  `spotify2ytmusic.backend`).
